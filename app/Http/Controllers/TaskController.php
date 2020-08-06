@@ -33,9 +33,26 @@ class TaskController extends Controller
         $comments_data = $this->fetchAPI('/comments');
         $comments = Comment::hydrate($comments_data);
 
-        return [
-            "task" => '2'
-        ];
+        $queries = $request->query();
+
+        $comments = $comments->filter(function ($comment) use ($queries){
+            $result = true;
+
+            foreach($queries as $key => $value){
+                switch ($key){
+                case "postId":
+                case "id":
+                    $result &= ($comment[$key] == $value);
+                    break;
+                default:
+                    $result &= strpos($comment[$key], $value);
+                }
+            }
+            
+            return $result;
+        });
+
+        return $comments;
     }
 
     private function fetchAPI($api) {
