@@ -1,8 +1,8 @@
-##api: /task1
+##task1
 
 Pretty straightforward, no explanation needed
 
-##api: /task2
+##task2
 
 - If no query parameteres was passed, get the full list of comments
 - If parameters such as `postId` or `id` is passed, then the comments will be filtered based on the passed value
