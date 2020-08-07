@@ -2,7 +2,7 @@
 
 namespace App\TypiCode;
 
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 use App\Contract\APIContract;
 use App\Comment;
@@ -15,7 +15,7 @@ class CommentsAPI implements APIContract {
         $this->base_url = $base_url;
     }
 
-    public function all(){
+    public function all() : Collection{
         if ($this->comments){
             return $this->comments;
         }
