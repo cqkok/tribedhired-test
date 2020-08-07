@@ -7,17 +7,18 @@ use Illuminate\Database\Eloquent\Collection;
 
 use App\Comment;
 use App\Post;
+use App\TypiCode\CommentsAPI;
+use App\TypiCode\PostsAPI;
+use App\Contract\APIContract;
 
 class TaskController extends Controller
 {
-    public function task1(){
-        $comments_data = $this->fetchAPI('/comments');
-        $comments = Comment::hydrate($comments_data);
+    public function task1(CommentsAPI $comments_api, PostsAPI $post_api){
+        $comments = $comments_api->all();
 
         $post_comments = $comments->countBy('postId');
 
-        $posts_data = $this->fetchAPI('/posts');
-        $posts = Post::hydrate($posts_data);
+        $posts = $post_api->all();
 
         $response = $posts->map(function($item, $key) use ($post_comments){
             return [
@@ -31,27 +32,22 @@ class TaskController extends Controller
         return $response;
     }
 
-    public function task2(Request $request){
-        $comments_data = $this->fetchAPI('/comments');
-        $comments = Comment::hydrate($comments_data);
-
+    public function task2(Request $request, CommentsAPI $comments_api){
         $search_critirea = $request->query();
 
-        $comments = $this->advance_search($comments, $search_critirea);
+        $comments = $this->advance_search($comments_api, $search_critirea);
 
         return $comments;
     }
 
-    private function fetchAPI(string $api) {
-        return json_decode(file_get_contents('https://jsonplaceholder.typicode.com'.$api), true);
-    }
+    private function advance_search(APIContract $api, Array $search_critirea){
+        $collection = $api->all();
 
-    private function advance_search(Collection $collection, Array $search_critirea){
         return $collection->filter(function ($item) use ($search_critirea){
             $filter_result = true;
 
             foreach($search_critirea as $key => $value){
-                if (!array_key_exists($key, $item)){
+                if (!isset($item[$key])){
                     continue;
                 }
 
