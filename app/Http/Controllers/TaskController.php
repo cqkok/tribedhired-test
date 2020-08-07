@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
+
 use App\Comment;
 use App\Post;
 
@@ -33,29 +35,37 @@ class TaskController extends Controller
         $comments_data = $this->fetchAPI('/comments');
         $comments = Comment::hydrate($comments_data);
 
-        $queries = $request->query();
+        $search_critirea = $request->query();
 
-        $comments = $comments->filter(function ($comment) use ($queries){
-            $result = true;
-
-            foreach($queries as $key => $value){
-                switch ($key){
-                case "postId":
-                case "id":
-                    $result &= ($comment[$key] == $value);
-                    break;
-                default:
-                    $result &= strpos($comment[$key], $value);
-                }
-            }
-            
-            return $result;
-        });
+        $comments = $this->advance_search($comments, $search_critirea);
 
         return $comments;
     }
 
-    private function fetchAPI($api) {
+    private function fetchAPI(string $api) {
         return json_decode(file_get_contents('https://jsonplaceholder.typicode.com'.$api), true);
+    }
+
+    private function advance_search(Collection $collection, Array $search_critirea){
+        return $collection->filter(function ($item) use ($search_critirea){
+            $filter_result = true;
+
+            foreach($search_critirea as $key => $value){
+                if (!array_key_exists($key, $item)){
+                    continue;
+                }
+
+                switch ($key){
+                case "postId":
+                case "id":
+                    $filter_result &= ($item[$key] == $value);
+                    break;
+                default:
+                    $filter_result &= strpos($item[$key], $value);
+                }
+            }
+            
+            return $filter_result;
+        });
     }
 }
